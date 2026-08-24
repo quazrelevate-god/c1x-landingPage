@@ -1,5 +1,16 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
+/**
+ * Devices that must not run scroll-driven video scrubbing or parallax.
+ *
+ * Width alone was not enough: a 810px-wide phone or any tablet sits above the old
+ * 767px cutoff, so it was served the desktop hero — a 260vh section that pulls the
+ * 7.4 MB master clip and seeks it frame by frame on scroll, which stutters badly on
+ * touch hardware. `pointer: coarse` catches every touch device whatever its width.
+ */
+export const LITE_MOTION_MQ =
+  "(max-width: 1023px), (pointer: coarse), (prefers-reduced-motion: reduce)";
+
 export function useInView<T extends HTMLElement = HTMLDivElement>(threshold = 0.25) {
   // A callback ref (rather than an object ref) so the observer re-attaches when
   // a component swaps the observed node — e.g. switching to a mobile layout.
@@ -33,7 +44,10 @@ export function useCountUp(to: number, active: boolean, duration = 1600) {
 
   useEffect(() => {
     if (!active) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setValue(to);
       return;
     }
@@ -61,7 +75,10 @@ export function useRawCountUp(to: number, active: boolean, duration = 2800) {
 
   useEffect(() => {
     if (!active) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setValue(to);
       return;
     }
@@ -219,7 +236,7 @@ export function Parallax({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const mq = window.matchMedia("(max-width: 767px), (prefers-reduced-motion: reduce)");
+    const mq = window.matchMedia(LITE_MOTION_MQ);
     if (mq.matches) return;
     let raf = 0;
     const compute = () => {
@@ -242,7 +259,11 @@ export function Parallax({
   }, [speed]);
 
   return (
-    <div ref={ref} className={className} style={{ transform: `translate3d(0, ${offset.toFixed(2)}px, 0)` }}>
+    <div
+      ref={ref}
+      className={className}
+      style={{ transform: `translate3d(0, ${offset.toFixed(2)}px, 0)` }}
+    >
       {children}
     </div>
   );
@@ -300,7 +321,13 @@ export function WordRise({
   );
 }
 
-export function Eyebrow({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" }) {
+export function Eyebrow({
+  children,
+  tone = "dark",
+}: {
+  children: ReactNode;
+  tone?: "dark" | "light";
+}) {
   return (
     <p
       className={`font-display text-xs uppercase tracking-[0.02em] sm:text-[0.72rem] ${

@@ -43,7 +43,9 @@ export function WorldCorridorMap() {
   const [view, setView] = useState(FULL_VIEW);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px)");
+    // Matches the hero's width cutoff: the full world map is unreadable on a phone
+    // or tablet, so anything under a desktop viewport gets the corridor close-up.
+    const mq = window.matchMedia("(max-width: 1023px)");
     const sync = () => setView(mq.matches ? CORRIDOR_VIEW : FULL_VIEW);
     sync();
     mq.addEventListener("change", sync);

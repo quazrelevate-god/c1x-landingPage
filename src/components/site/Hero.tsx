@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import heroMobileVideo from "@/assets/hero-loop.mp4";
 import heroPoster from "@/assets/hero-port.jpg";
 import heroDesktopVideo from "@/assets/hero-desktop.mp4";
+import { LITE_MOTION_MQ } from "./primitives";
 
 const headline = "Trade direct. Settle certain. No unverified hands in between.";
 const subhead =
@@ -141,7 +142,7 @@ export function Hero() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px), (prefers-reduced-motion: reduce)");
+    const mq = window.matchMedia(LITE_MOTION_MQ);
     const sync = () => setMobile(mq.matches);
     sync();
     setReady(true);
@@ -247,12 +248,22 @@ export function Hero() {
 
         <div aria-hidden className="pointer-events-none absolute inset-0">
           {CALLOUTS.map((c) => (
-            <WireCallout key={c.label} label={c.label} x={c.x} y={c.y} progress={clamp((p - c.at) / 0.09)} />
+            <WireCallout
+              key={c.label}
+              label={c.label}
+              x={c.x}
+              y={c.y}
+              progress={clamp((p - c.at) / 0.09)}
+            />
           ))}
         </div>
 
         <div className="relative h-full">
-          <HeroCopy headlineReveal={headlineReveal} subheadReveal={subheadReveal} ctaReveal={ctaReveal} />
+          <HeroCopy
+            headlineReveal={headlineReveal}
+            subheadReveal={subheadReveal}
+            ctaReveal={ctaReveal}
+          />
         </div>
 
         {/* scroll cue — only at the very top */}
@@ -260,7 +271,9 @@ export function Hero() {
           className="pointer-events-none absolute inset-x-0 bottom-8 z-40 flex flex-col items-center gap-2 transition-opacity duration-300"
           style={{ opacity: 1 - clamp(p / 0.04) }}
         >
-          <span className="font-display text-[0.68rem] tracking-[0.02em] text-muted-foreground uppercase">Scroll</span>
+          <span className="font-display text-[0.68rem] tracking-[0.02em] text-muted-foreground uppercase">
+            Scroll
+          </span>
           <span className="relative h-10 w-px bg-border">
             <span className="corridor-particle absolute inset-x-0 top-0 h-3 bg-accent" />
           </span>

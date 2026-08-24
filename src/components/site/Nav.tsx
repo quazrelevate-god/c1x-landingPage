@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo.png";
 import logoInk from "@/assets/logo-ink.png";
+import { LITE_MOTION_MQ } from "./primitives";
 
 const links = [
   { label: "How It Works", href: "/#how-it-works" },
@@ -21,7 +22,9 @@ export function Nav() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 767px), (prefers-reduced-motion: reduce)");
+    // Must match the hero's own gate: the bar's backdrop timing depends on which
+    // hero is rendered, and they drift apart if the two queries disagree.
+    const mq = window.matchMedia(LITE_MOTION_MQ);
     setReady(true);
 
     const onScroll = () => {
@@ -57,7 +60,9 @@ export function Nav() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-500 ${
-        scrolled ? "border-b border-border bg-background/85 backdrop-blur-xl" : "border-b border-transparent"
+        scrolled
+          ? "border-b border-border bg-background/85 backdrop-blur-xl"
+          : "border-b border-transparent"
       }`}
       style={{ opacity, pointerEvents: opacity < 0.05 ? "none" : undefined }}
     >
