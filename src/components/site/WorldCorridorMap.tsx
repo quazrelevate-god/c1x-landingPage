@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import data from "./world-dots.json";
 
 type Dot = { x: number; y: number; t?: number };
@@ -31,11 +32,28 @@ function buildPaths() {
 
 const [basePath, activePath, soonPath] = buildPaths();
 
+/**
+ * Narrow screens crop to the corridors that matter (Europe through Australia)
+ * so the country shapes stay legible instead of shrinking to a smudge.
+ */
+const FULL_VIEW = `0 0 ${width} ${height}`;
+const CORRIDOR_VIEW = "96 4 140 102";
+
 export function WorldCorridorMap() {
+  const [view, setView] = useState(FULL_VIEW);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setView(mq.matches ? CORRIDOR_VIEW : FULL_VIEW);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   return (
     <div className="relative w-full">
       <svg
-        viewBox={`0 0 ${width} ${height}`}
+        viewBox={view}
         className="h-auto w-full"
         role="img"
         aria-label="World map highlighting active regions in India, the Middle East and Africa, with Europe and Australia coming soon"

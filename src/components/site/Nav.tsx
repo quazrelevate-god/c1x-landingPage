@@ -59,7 +59,7 @@ export function Nav() {
       style={{ opacity, pointerEvents: opacity < 0.05 ? "none" : undefined }}
     >
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:h-18 sm:gap-6 sm:px-6 sm:py-4">
-        <a href="/" className="relative flex items-center" aria-label="Corridor One X home">
+        <a href="/" className="relative flex items-center py-3" aria-label="Corridor One X home">
           {/* Two colourways cross-faded by the global light/dark dial. */}
           <img
             src={logo}
@@ -92,7 +92,7 @@ export function Nav() {
         <div className="flex items-center gap-3">
           <a
             href="/#book-a-demo"
-            className="rounded-md bg-accent px-3 py-2 font-display text-[0.8rem] font-medium tracking-tight text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-pressed sm:px-4 sm:text-sm"
+            className="rounded-md bg-accent px-3.5 py-3 font-display text-[0.8rem] font-medium tracking-tight text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-pressed sm:px-4 sm:py-2.5 sm:text-sm"
           >
             Book a Demo
           </a>

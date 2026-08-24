@@ -23,7 +23,7 @@ export function Footer() {
             <li key={l.label}>
               <a
                 href={l.href}
-                className="font-sans text-sm text-secondary-foreground transition-colors hover:text-accent"
+                className="inline-block py-2.5 font-sans text-sm text-secondary-foreground transition-colors hover:text-accent"
               >
                 {l.label}
               </a>
