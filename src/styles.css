@@ -42,13 +42,36 @@
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.145 0 0); /* #0A0A0A */
-  --foreground: oklch(0.945 0.008 120); /* #EDEFEA */
-  --card: oklch(0.196 0 0); /* #141414 */
-  --card-foreground: oklch(0.945 0.008 120);
-  --elevated: oklch(0.253 0 0); /* #1E1E1E */
-  --popover: oklch(0.196 0 0);
-  --popover-foreground: oklch(0.945 0.008 120);
+  /*
+   * Daylight dial. 0 = the site's native dark, 1 = the light mode the Approach
+   * section scrolls into. Every surface token below is mixed between its dark
+   * and light end-points by this one number, so a single JS write on
+   * document.documentElement re-themes the whole page smoothly.
+   */
+  --theme-t: 0;
+
+  --bg-dark: oklch(0.145 0 0); /* #0A0A0A */
+  --bg-light: oklch(0.955 0.011 85); /* #F4F1EC */
+  --fg-dark: oklch(0.945 0.008 120); /* #EDEFEA */
+  --fg-light: oklch(0.185 0 0);
+  --card-dark: oklch(0.196 0 0); /* #141414 */
+  --card-light: oklch(0.995 0.003 85);
+  --elevated-dark: oklch(0.253 0 0); /* #1E1E1E */
+  --elevated-light: oklch(0.978 0.006 85);
+  --border-dark: oklch(0.335 0.011 130); /* #3A3F38 */
+  --border-light: oklch(0.855 0.008 120);
+  --secondary-fg-dark: oklch(0.845 0.014 130); /* #C1C8BE */
+  --secondary-fg-light: oklch(0.4 0.008 130);
+  --muted-fg-dark: oklch(0.635 0.019 130); /* #8A9285 */
+  --muted-fg-light: oklch(0.505 0.012 130);
+
+  --background: color-mix(in oklab, var(--bg-light) calc(var(--theme-t) * 100%), var(--bg-dark));
+  --foreground: color-mix(in oklab, var(--fg-light) calc(var(--theme-t) * 100%), var(--fg-dark));
+  --card: color-mix(in oklab, var(--card-light) calc(var(--theme-t) * 100%), var(--card-dark));
+  --card-foreground: var(--foreground);
+  --elevated: color-mix(in oklab, var(--elevated-light) calc(var(--theme-t) * 100%), var(--elevated-dark));
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
 
   --primary: oklch(0.855 0.166 116.5); /* #C4D82E */
   --primary-foreground: oklch(0.145 0 0);
@@ -57,15 +80,15 @@
   --accent-hover: oklch(0.897 0.152 114); /* #D6E85A */
   --accent-pressed: oklch(0.713 0.147 117); /* #9CAD1F */
 
-  --secondary: oklch(0.253 0 0);
-  --secondary-foreground: oklch(0.845 0.014 130); /* #C1C8BE */
-  --muted: oklch(0.253 0 0);
-  --muted-foreground: oklch(0.635 0.019 130); /* #8A9285 */
+  --secondary: var(--elevated);
+  --secondary-foreground: color-mix(in oklab, var(--secondary-fg-light) calc(var(--theme-t) * 100%), var(--secondary-fg-dark));
+  --muted: var(--elevated);
+  --muted-foreground: color-mix(in oklab, var(--muted-fg-light) calc(var(--theme-t) * 100%), var(--muted-fg-dark));
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.335 0.011 130); /* #3A3F38 */
-  --input: oklch(0.335 0.011 130);
+  --border: color-mix(in oklab, var(--border-light) calc(var(--theme-t) * 100%), var(--border-dark));
+  --input: var(--border);
   --ring: oklch(0.855 0.166 116.5);
 
   --light-surface: oklch(0.945 0.008 120); /* #EDEFEA */
@@ -140,6 +163,67 @@
       transparent 72%
     );
   }
+}
+
+/*
+ * Frosted slab that floats above whatever is behind it. Reads correctly in both
+ * themes because it mixes the live --card / --border tokens rather than baking
+ * in a colour.
+ */
+@utility glass-card {
+  position: relative;
+  background: color-mix(in oklab, var(--card) 58%, transparent);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+  box-shadow:
+    0 28px 64px -32px color-mix(in oklab, var(--bg-dark) 55%, transparent),
+    inset 0 1px 0 color-mix(in oklab, white 14%, transparent);
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.6s ease;
+}
+
+@utility glass-float {
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 40px 80px -34px color-mix(in oklab, var(--bg-dark) 62%, transparent),
+      inset 0 1px 0 color-mix(in oklab, white 20%, transparent);
+    border-color: color-mix(in oklab, var(--accent) 38%, transparent);
+  }
+}
+
+/* The floating frosted panel used by the Trust section. */
+@utility trust-panel {
+  background: color-mix(in oklab, var(--light-surface) 88%, transparent);
+  backdrop-filter: blur(26px) saturate(1.25);
+  -webkit-backdrop-filter: blur(26px) saturate(1.25);
+  border: 1px solid color-mix(in oklab, white 55%, transparent);
+  box-shadow:
+    0 50px 120px -50px rgba(0, 0, 0, 0.95),
+    0 0 0 1px color-mix(in oklab, var(--accent) 8%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+@keyframes kpi-sheen {
+  0% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(420%);
+    opacity: 0;
+  }
+}
+
+@utility kpi-sheen {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.9), transparent);
+  animation: kpi-sheen 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @utility hairline-top {

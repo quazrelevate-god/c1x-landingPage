@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Eyebrow, Parallax, Reveal } from "./primitives";
+import { useRef, useState, type CSSProperties } from "react";
+import { Eyebrow, Parallax, Reveal, useInView } from "./primitives";
 import { ProducersDiagram, ExportersDiagram, ImportersDiagram } from "./AudienceDiagrams";
 
 const audiences = [
@@ -82,6 +82,34 @@ function TiltCard({ a }: { a: (typeof audiences)[number] }) {
   );
 }
 
+/**
+ * The three audiences are dealt out left to right: each card slides in off the
+ * stack, straightens up, and settles into its column.
+ */
+function DealtDeck() {
+  const { ref, inView } = useInView<HTMLDivElement>(0.2);
+
+  return (
+    <div ref={ref} className="mt-16 grid gap-6 md:grid-cols-3">
+      {audiences.map((a, i) => {
+        const style: CSSProperties = {
+          opacity: inView ? 1 : 0,
+          transform: inView
+            ? "none"
+            : `translate3d(${-70 - i * 26}px, 26px, 0) rotate(${-7 + i}deg) scale(0.9)`,
+          transition: `opacity 900ms cubic-bezier(0.16,1,0.3,1) ${i * 260}ms, transform 900ms cubic-bezier(0.16,1,0.3,1) ${i * 260}ms`,
+          willChange: "transform, opacity",
+        };
+        return (
+          <div key={a.label} style={style}>
+            <TiltCard a={a} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function WhoItsFor() {
   return (
     <section id="who-its-for" className="relative overflow-hidden bg-light-surface-alt px-5 py-20 text-ink sm:px-6 sm:py-24 md:py-32">
@@ -95,12 +123,8 @@ export function WhoItsFor() {
           </Reveal>
         </div>
 
-        <Parallax speed={-0.06} className="mt-16 grid gap-6 md:grid-cols-3">
-          {audiences.map((a, i) => (
-            <Reveal key={a.label} delay={i * 130}>
-              <TiltCard a={a} />
-            </Reveal>
-          ))}
+        <Parallax speed={-0.06}>
+          <DealtDeck />
         </Parallax>
       </div>
     </section>

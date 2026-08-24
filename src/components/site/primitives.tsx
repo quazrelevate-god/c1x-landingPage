@@ -52,6 +52,41 @@ export function useCountUp(to: number, active: boolean, duration = 1600) {
   return value;
 }
 
+/**
+ * Counts to `to` at a flat, mechanical pace — no easing tail. Steps are jittered
+ * slightly so the digits visibly churn rather than gliding.
+ */
+export function useRawCountUp(to: number, active: boolean, duration = 2800) {
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setValue(to);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now();
+    let shown = 0;
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1);
+      if (t >= 1) {
+        setValue(to);
+        return;
+      }
+      const target = to * t;
+      // never runs backwards, but the increment size wobbles frame to frame
+      shown = Math.max(shown, Math.floor(target - Math.random() * (to * 0.012)));
+      setValue(Math.max(0, Math.min(shown, to)));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [to, active, duration]);
+
+  return value;
+}
+
 /** Scroll progress (0 to 1) of an element travelling through the viewport. */
 export function useScrollProgress<T extends HTMLElement = HTMLDivElement>() {
   const ref = useRef<T>(null);
@@ -117,6 +152,55 @@ export function useStickyProgress<T extends HTMLElement = HTMLDivElement>(enable
   }, [enabled]);
 
   return { ref, progress };
+}
+
+/**
+ * Drives the global light/dark dial (--theme-t on :root) from one section's
+ * position: ramps to light as the section enters, holds while it owns the
+ * screen, ramps back to dark as it leaves. Quantised so we only write when the
+ * value actually moves, keeping repaints off the scroll hot path.
+ */
+export function useThemeDial<T extends HTMLElement = HTMLElement>(enabled = true) {
+  const ref = useRef<T>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    const root = document.documentElement;
+    if (!el || !enabled) {
+      root.style.setProperty("--theme-t", "0");
+      return;
+    }
+    let raf = 0;
+    let last = -1;
+    const compute = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const ramp = vh * 0.8;
+      const entering = (vh - r.top) / ramp;
+      const leaving = r.bottom / ramp;
+      const t = Math.min(Math.max(Math.min(entering, leaving, 1), 0), 1);
+      const q = Math.round(t * 50) / 50;
+      if (q !== last) {
+        last = q;
+        root.style.setProperty("--theme-t", String(q));
+      }
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(compute);
+    };
+    compute();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      root.style.setProperty("--theme-t", "0");
+    };
+  }, [enabled]);
+
+  return ref;
 }
 
 /** Subtle GPU-light parallax for background glows. Disabled on small screens. */

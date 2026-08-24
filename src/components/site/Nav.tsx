@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo.png";
+import logoInk from "@/assets/logo-ink.png";
 
 const links = [
   { label: "How It Works", href: "/#how-it-works" },
@@ -58,8 +59,21 @@ export function Nav() {
       style={{ opacity, pointerEvents: opacity < 0.05 ? "none" : undefined }}
     >
       <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:h-18 sm:gap-6 sm:px-6 sm:py-4">
-        <a href="/" className="flex items-center" aria-label="Corridor One X home">
-          <img src={logo} alt="Corridor One X" className="h-5 w-auto sm:h-6 md:h-7" />
+        <a href="/" className="relative flex items-center" aria-label="Corridor One X home">
+          {/* Two colourways cross-faded by the global light/dark dial. */}
+          <img
+            src={logo}
+            alt="Corridor One X"
+            className="h-5 w-auto sm:h-6 md:h-7"
+            style={{ opacity: "calc(1 - var(--theme-t))" }}
+          />
+          <img
+            src={logoInk}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-5 w-auto sm:h-6 md:h-7"
+            style={{ opacity: "var(--theme-t)" }}
+          />
         </a>
 
         <ul className="hidden items-center gap-8 lg:flex">

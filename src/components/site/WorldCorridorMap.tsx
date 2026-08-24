@@ -2,7 +2,8 @@ import data from "./world-dots.json";
 
 type Dot = { x: number; y: number; t?: number };
 
-const width = 238;
+const { width } = data;
+// Trim the empty southern ocean below the last highlighted landmass (Tasmania).
 const height = 106;
 
 const BASE = "#3A3F38";
@@ -11,7 +12,9 @@ const SOON = "#5E6B2A";
 
 /**
  * The map is drawn as three static paths (one per tone) instead of thousands of
- * <circle> nodes, so it paints instantly with no entrance animation.
+ * <circle> nodes, so it paints instantly with no entrance animation. Tones are
+ * assigned per country in scripts/generate-world-dots.mjs, so the highlighted
+ * corridors follow real national borders.
  */
 function buildPaths() {
   const out: [string, string, string] = ["", "", ""];

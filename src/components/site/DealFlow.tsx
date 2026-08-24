@@ -1,4 +1,5 @@
-import { Eyebrow, ParallaxGlow, Reveal, Section, useScrollProgress } from "./primitives";
+import { useEffect, useState, type CSSProperties } from "react";
+import { Eyebrow, ParallaxGlow, Reveal, Section, useStickyProgress } from "./primitives";
 
 const steps = [
   {
@@ -48,52 +49,112 @@ const steps = [
   },
 ];
 
+const clamp = (v: number) => Math.min(Math.max(v, 0), 1);
+
 export function DealFlow() {
-  const { ref, progress } = useScrollProgress<HTMLOListElement>();
+  const [compact, setCompact] = useState(false);
+  const [ready, setReady] = useState(false);
+  const { ref: pinRef, progress } = useStickyProgress<HTMLDivElement>(ready && !compact);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 1023px), (prefers-reduced-motion: reduce)");
+    const sync = () => setCompact(mq.matches);
+    sync();
+    setReady(true);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Copy owns the first slice of the pin, then one step at a time takes focus.
+  const START = 0.16;
+  const band = (1 - START) / steps.length;
+  const cursor = (progress - START) / band; // which step is live, as a float
+
+  const header = (
+    <div className="max-w-3xl">
+      <Eyebrow>The Deal Flow</Eyebrow>
+      <h2 className="mt-6 font-display text-3xl leading-[1.1] tracking-[-0.03em] text-foreground md:text-4xl lg:text-[2.75rem]">
+        A $200,000 deal. Closed with certainty. In nine steps.
+      </h2>
+    </div>
+  );
+
+  if (ready && compact) {
+    return (
+      <Section id="how-it-works" className="hairline-top relative overflow-hidden">
+        <ParallaxGlow speed={0.55} intensity={12} />
+        <Reveal>{header}</Reveal>
+        <div className="mt-12 flex flex-col gap-4">
+          {steps.map((s, i) => (
+            <Reveal key={s.n} delay={i * 70}>
+              <article className="glass-card rounded-2xl p-6">
+                <div className="flex items-baseline gap-4">
+                  <span className="font-display text-sm tracking-[0.02em] text-accent">{s.n}</span>
+                  <h3 className="font-display text-lg font-medium tracking-tight text-foreground">{s.title}</h3>
+                </div>
+                <p className="mt-3 font-sans text-sm leading-relaxed text-secondary-foreground">{s.body}</p>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+    );
+  }
 
   return (
-    <Section id="how-it-works" className="hairline-top relative overflow-hidden">
-      <ParallaxGlow speed={0.55} intensity={12} />
-      <div className="max-w-3xl">
-        <Reveal>
-          <Eyebrow>The Deal Flow</Eyebrow>
-          <h2 className="mt-6 font-display text-3xl leading-[1.1] tracking-[-0.03em] text-foreground md:text-4xl lg:text-[2.75rem]">
-            A $200,000 deal. Closed with certainty. In seven steps.
-          </h2>
-        </Reveal>
-      </div>
+    <section id="how-it-works" ref={pinRef} className="hairline-top relative h-[560vh]">
+      <div className="sticky top-0 flex h-screen items-center overflow-hidden px-5 sm:px-6">
+        <ParallaxGlow speed={0.55} intensity={12} />
+        <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+          <div style={{ opacity: clamp(progress / 0.06) }}>{header}</div>
 
-      <ol ref={ref} className="relative mt-16 border-l border-border">
-        {/* scroll-driven lime line */}
-        <span
-          aria-hidden
-          className="absolute top-0 -left-px w-px bg-gradient-to-b from-accent/40 via-accent to-accent/70"
-          style={{
-            height: `${(progress * 100).toFixed(2)}%`,
-            transition: "height 120ms linear",
-          }}
-        />
-        {steps.map((s, i) => {
-          const active = progress >= (i + 0.35) / steps.length;
-          return (
-            <li
-              key={s.n}
-              data-active={active}
-              className="group relative grid gap-4 py-8 pl-8 transition-opacity duration-700 data-[active=false]:opacity-45 data-[active=true]:opacity-100 md:grid-cols-[7rem_1fr_1.4fr] md:items-baseline md:gap-8"
-            >
-              <span
-                aria-hidden
-                className={`absolute top-[2.6rem] -left-[4.5px] h-2 w-2 rounded-full transition-all duration-500 ease-out ${
-                  active ? "scale-150 bg-accent shadow-[0_0_0_4px_color-mix(in_oklab,var(--accent)_18%,transparent)]" : "bg-border"
-                }`}
-              />
-              <span className="font-display text-sm tracking-[0.02em] text-accent">{s.n}</span>
-              <h3 className="font-display text-xl font-medium tracking-tight text-foreground">{s.title}</h3>
-              <p className="font-sans text-sm leading-relaxed text-secondary-foreground">{s.body}</p>
-            </li>
-          );
-        })}
-      </ol>
-    </Section>
+          {/* One card holds focus; everything else dims back and blurs out. */}
+          <div className="relative h-[340px]">
+            {steps.map((s, i) => {
+              const d = cursor - i; // 0 while this step is live
+              const focus = clamp(1 - Math.abs(d) * 1.6);
+              const off = Math.max(Math.abs(d) - 0.15, 0);
+              const style: CSSProperties = {
+                zIndex: Math.round(100 - Math.abs(d) * 10),
+                opacity: progress < 0.06 ? 0 : Math.max(0.07, 1 - off * 2),
+                filter: `blur(${Math.min(off * 10, 12)}px)`,
+                transform: `translateY(${d * -150}px) scale(${1 - Math.min(off * 0.1, 0.2)})`,
+              };
+              return (
+                <article
+                  key={s.n}
+                  data-focus={focus > 0.55}
+                  className="glass-card absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-2xl p-7 transition-[opacity,filter,transform] duration-300 ease-out data-[focus=true]:border-accent/45"
+                  style={style}
+                >
+                  <div className="flex items-baseline gap-4">
+                    <span className="font-display text-sm tracking-[0.02em] text-accent">{s.n}</span>
+                    <h3 className="font-display text-xl font-medium tracking-tight text-foreground md:text-2xl">
+                      {s.title}
+                    </h3>
+                  </div>
+                  <p className="mt-4 font-sans text-sm leading-relaxed text-secondary-foreground md:text-[0.95rem]">
+                    {s.body}
+                  </p>
+                </article>
+              );
+            })}
+
+            {/* step rail */}
+            <div className="absolute -bottom-2 left-0 right-0 flex gap-1.5">
+              {steps.map((s, i) => (
+                <span
+                  key={s.n}
+                  className="h-[3px] flex-1 rounded-full transition-colors duration-300"
+                  style={{
+                    background: Math.abs(cursor - i) < 0.5 ? "var(--accent)" : "var(--border)",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -1,4 +1,4 @@
-import { Eyebrow, Reveal, useCountUp, useInView } from "./primitives";
+import { Eyebrow, Reveal, useInView, useRawCountUp } from "./primitives";
 
 const breakdown = [
   { label: "KYC and identity", value: 30 },
@@ -32,7 +32,7 @@ const columns = [
 
 function TrustScoreCard() {
   const { ref, inView } = useInView<HTMLDivElement>(0.35);
-  const score = useCountUp(1000, inView, 1800);
+  const score = useRawCountUp(1000, inView, 3000);
 
   return (
     <div ref={ref} className="h-full border-t border-ink/15 pt-7">
@@ -50,14 +50,21 @@ function TrustScoreCard() {
               <span>{b.label}</span>
               <span className="tabular-nums text-ink/60">{b.value}%</span>
             </div>
-            <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-ink/10">
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-ink/10">
               <div
-                className="h-full rounded-full bg-accent"
+                className="relative h-full rounded-full bg-accent"
                 style={{
                   width: inView ? `${b.value}%` : "0%",
-                  transition: `width 1.1s cubic-bezier(0.16,1,0.3,1) ${i * 120 + 200}ms`,
+                  transition: `width 1.4s cubic-bezier(0.16,1,0.3,1) ${i * 180 + 400}ms`,
                 }}
-              />
+              >
+                {/* light sweeping along the filled bar */}
+                <span
+                  aria-hidden
+                  className="kpi-sheen absolute inset-y-0 w-1/3 rounded-full"
+                  style={{ animationDelay: `${i * 180 + 900}ms` }}
+                />
+              </div>
             </div>
           </li>
         ))}
@@ -68,38 +75,40 @@ function TrustScoreCard() {
 
 export function TrustProtection() {
   return (
-    <section id="trust" className="relative overflow-hidden bg-light-surface px-5 py-20 text-ink sm:px-6 sm:py-24 md:py-32">
+    <section id="trust" className="relative px-5 py-20 sm:px-6 sm:py-24 md:py-28">
       <div className="mx-auto w-full max-w-6xl">
-        <div className="max-w-3xl">
-          <Reveal>
-            <Eyebrow tone="light">Trust, Verified. Money, Protected.</Eyebrow>
-            <h2 className="mt-6 font-display text-3xl leading-[1.1] tracking-[-0.03em] text-ink md:text-4xl lg:text-[2.75rem]">
-              Every counterparty verified. Every rupee in escrow.
-            </h2>
-          </Reveal>
-        </div>
+        {/* A frosted white panel that floats over the dark page rather than
+            painting the whole viewport light. */}
+        <Reveal>
+          <div className="trust-panel relative overflow-hidden rounded-3xl px-6 py-12 text-ink sm:px-10 sm:py-14 md:px-14 md:py-16">
+            <div className="max-w-3xl">
+              <Eyebrow tone="light">Trust, Verified. Money, Protected.</Eyebrow>
+              <h2 className="mt-6 font-display text-3xl leading-[1.1] tracking-[-0.03em] text-ink md:text-4xl lg:text-[2.75rem]">
+                Every counterparty verified. Every rupee in escrow.
+              </h2>
+            </div>
 
-        <div className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
-          <Reveal>
-            <TrustScoreCard />
-          </Reveal>
-          {columns.map((c, i) => (
-            <Reveal key={c.title} delay={(i + 1) * 120}>
-              <div className="h-full border-t border-ink/15 pt-7">
-                <h3 className="font-display text-xl font-medium tracking-tight text-ink">{c.title}</h3>
-                <p className="mt-3 font-sans text-sm leading-relaxed text-ink/65">{c.body}</p>
-                <ul className="mt-6 space-y-3">
-                  {c.items.map((it) => (
-                    <li key={it} className="flex gap-3 font-sans text-sm text-ink/80">
-                      <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-                      {it}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+            <div className="mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+              <TrustScoreCard />
+              {columns.map((c, i) => (
+                <Reveal key={c.title} delay={(i + 1) * 120}>
+                  <div className="h-full border-t border-ink/15 pt-7">
+                    <h3 className="font-display text-xl font-medium tracking-tight text-ink">{c.title}</h3>
+                    <p className="mt-3 font-sans text-sm leading-relaxed text-ink/65">{c.body}</p>
+                    <ul className="mt-6 space-y-3">
+                      {c.items.map((it) => (
+                        <li key={it} className="flex gap-3 font-sans text-sm text-ink/80">
+                          <span aria-hidden className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+                          {it}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

@@ -16,9 +16,21 @@ export interface TimelineItem {
 interface RadialOrbitalTimelineProps {
   timelineData: TimelineItem[];
   centerNode?: ReactNode;
+  /** Tailwind height classes for the stage; defaults to the standalone sizing. */
+  heightClass?: string;
+  /** 0 to 1 — blooms the ring and its nodes in once the centre mark has landed. */
+  nodesReveal?: number;
+  /** 0 to 1 — fades the centre mark itself. */
+  centerReveal?: number;
 }
 
-export default function RadialOrbitalTimeline({ timelineData, centerNode }: RadialOrbitalTimelineProps) {
+export default function RadialOrbitalTimeline({
+  timelineData,
+  centerNode,
+  heightClass = "h-[470px] sm:h-[640px] lg:h-[720px]",
+  nodesReveal = 1,
+  centerReveal = 1,
+}: RadialOrbitalTimelineProps) {
   const [expandedItems, setExpandedItems] = useState<Record<number, boolean>>({});
   const [rotationAngle, setRotationAngle] = useState(0);
   const [autoRotate, setAutoRotate] = useState(true);
@@ -101,12 +113,15 @@ export default function RadialOrbitalTimeline({ timelineData, centerNode }: Radi
     <div
       ref={containerRef}
       onClick={handleContainerClick}
-      className="relative flex h-[470px] w-full items-center justify-center overflow-hidden sm:h-[640px] lg:h-[720px]"
+      className={`relative flex w-full items-center justify-center overflow-hidden ${heightClass}`}
     >
       <div ref={orbitRef} className="relative flex h-full w-full items-center justify-center">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
           {/* center mark */}
-          <div className="relative grid h-20 w-20 place-items-center rounded-full border border-accent/40 bg-card/70 backdrop-blur-sm">
+          <div
+            className="relative grid h-20 w-20 place-items-center rounded-full border border-accent/40 bg-card/70 backdrop-blur-sm transition-opacity duration-500"
+            style={{ opacity: centerReveal }}
+          >
             <div className="absolute inset-0 animate-ping rounded-full border border-accent/25" />
             <div className="absolute -inset-6 rounded-full bg-accent/10 blur-2xl" />
             {centerNode}
@@ -114,8 +129,13 @@ export default function RadialOrbitalTimeline({ timelineData, centerNode }: Radi
 
           {/* orbit ring */}
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-border"
-            style={{ width: radius * 2, height: radius * 2 }}
+            className="pointer-events-none absolute left-1/2 top-1/2 rounded-full border border-dashed border-border"
+            style={{
+              width: radius * 2,
+              height: radius * 2,
+              opacity: nodesReveal,
+              transform: `translate(-50%, -50%) scale(${0.82 + nodesReveal * 0.18})`,
+            }}
           />
 
           {timelineData.map((item, index) => {
@@ -130,9 +150,12 @@ export default function RadialOrbitalTimeline({ timelineData, centerNode }: Radi
                 key={item.id}
                 className="absolute left-1/2 top-1/2 cursor-pointer transition-all duration-700"
                 style={{
-                  transform: `translate(${position.x}px, ${position.y}px)`,
+                  transform: `translate(${position.x * nodesReveal}px, ${position.y * nodesReveal}px) scale(${
+                    0.6 + nodesReveal * 0.4
+                  })`,
                   zIndex: isExpanded ? 300 : position.zIndex,
-                  opacity: isExpanded ? 1 : position.opacity,
+                  opacity: (isExpanded ? 1 : position.opacity) * nodesReveal,
+                  pointerEvents: nodesReveal < 0.9 ? "none" : undefined,
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
