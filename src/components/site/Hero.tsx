@@ -15,6 +15,15 @@ const subhead =
 
 const clamp = (v: number) => Math.min(Math.max(v, 0), 1);
 
+/* The ship completes its run well before the section ends… */
+const SCRUB_END = 0.72;
+/* …then the foreground dissolves… */
+const OUTRO_AT = 0.7;
+const OUTRO_LEN = 0.14;
+/* …and the footage sinks to a dim backdrop for the Problem section. */
+const DIM_AT = 0.76;
+const DIM_LEN = 0.2;
+
 function HeroCta() {
   return (
     <a
@@ -65,9 +74,9 @@ function Overlay() {
 // Anchored to the stacked containers on deck (cargo runs diagonally
 // from upper-left to lower-right of the ship as the wireframe reveals).
 const CALLOUTS = [
-  { label: "Verified", at: 0.42, x: "56%", y: "17%" },
-  { label: "Matched", at: 0.6, x: "64%", y: "32%" },
-  { label: "Secured", at: 0.78, x: "72%", y: "49%" },
+  { label: "Verified", at: 0.3, x: "56%", y: "17%" },
+  { label: "Matched", at: 0.44, x: "64%", y: "32%" },
+  { label: "Secured", at: 0.58, x: "72%", y: "49%" },
 ];
 
 function WireCallout({
@@ -126,15 +135,15 @@ function HeroCopy({
     // On phones the copy lives under the video band, left aligned like the rest
     // of the page. From sm up it returns to centred over the full-bleed clip.
     <div className="relative mx-auto flex h-full w-full max-w-6xl items-end justify-center px-5 pb-14 text-left sm:items-center sm:px-6 sm:pb-0 sm:text-center">
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-2xl">
         <h1
-          className="font-display text-[2rem] leading-[1.06] font-medium tracking-[-0.035em] text-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:text-5xl lg:text-6xl"
+          className="font-display text-[1.6rem] leading-[1.1] font-medium tracking-[-0.035em] text-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:text-[2.4rem] lg:text-[2.9rem]"
           style={revealStyle(headlineReveal)}
         >
           {headline}
         </h1>
         <p
-          className="mt-6 max-w-lg font-sans text-[0.95rem] leading-relaxed text-secondary-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:mx-auto sm:mt-8 sm:text-base"
+          className="mt-5 max-w-md font-sans text-[0.88rem] leading-relaxed text-secondary-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:mx-auto sm:mt-6 sm:text-[0.95rem]"
           style={revealStyle(subheadReveal)}
         >
           {subhead}
@@ -210,7 +219,7 @@ export function Hero() {
       const dur = v.duration;
       if (!dur || Number.isNaN(dur)) return;
       current.current += (target.current - current.current) * 0.12;
-      const t = clamp(current.current) * (dur - 0.05);
+      const t = clamp(current.current / SCRUB_END) * (dur - 0.05);
       if (Math.abs(v.currentTime - t) > 1 / 60) {
         try {
           v.currentTime = t;
@@ -225,9 +234,15 @@ export function Hero() {
 
   // Staged reveal: the opening logo flythrough owns p 0 -> ~0.06, then the
   // headline, subhead, and CTA each blur-fade in over their own scroll band.
-  const headlineReveal = clamp((p - 0.08) / 0.08);
-  const subheadReveal = clamp((p - 0.18) / 0.08);
-  const ctaReveal = clamp((p - 0.28) / 0.08);
+  // Past SCRUB_END the ship has finished its run, so everything in front of it
+  // fades away and the footage itself dims to a backdrop — the hero hands over
+  // by dissolving rather than sliding off as a sheet.
+  const outro = clamp((p - OUTRO_AT) / OUTRO_LEN);
+  const hold = 1 - outro;
+  const headlineReveal = clamp((p - 0.08) / 0.08) * hold;
+  const subheadReveal = clamp((p - 0.18) / 0.08) * hold;
+  const ctaReveal = clamp((p - 0.28) / 0.08) * hold;
+  const dim = clamp((p - DIM_AT) / DIM_LEN);
 
   if (ready && mobile) {
     return (
@@ -277,7 +292,8 @@ export function Hero() {
   return (
     // svh so the pinned pane doesn't resize when mobile browser chrome hides,
     // which would otherwise re-run the scroll maths mid-scrub and jump the video.
-    <section ref={sectionRef} id="top" className="relative h-[260svh]">
+    // The extra 40svh past the scrub is the hand-over: copy dissolves, footage dims.
+    <section ref={sectionRef} id="top" className="relative h-[300svh]">
       <div className="sticky top-0 h-[100svh] min-h-[560px] overflow-hidden bg-background">
         {/*
           The clip is 16:9. Stretched over a full-height portrait viewport,
@@ -286,7 +302,15 @@ export function Hero() {
           reference layout brings the crop back to about half the frame, which
           is the whole ship. From sm up it goes full bleed as before.
         */}
-        <div className="absolute inset-x-0 top-0 h-[56svh] sm:inset-0 sm:h-full">
+        <div
+          className="absolute inset-x-0 top-0 h-[56svh] sm:inset-0 sm:h-full"
+          // Once the ship has finished its run the footage sinks to a backdrop
+          // for the Problem section rather than sliding away as a sheet.
+          style={{
+            filter: `brightness(${1 - dim * 0.74}) saturate(${1 - dim * 0.5})`,
+            opacity: 1 - dim * 0.55,
+          }}
+        >
           <video
             ref={videoRef}
             // Ship sits around 70% across, so a centred crop cuts it out.
@@ -313,7 +337,11 @@ export function Hero() {
 
         {/* Anchored to where the deck sits in a landscape crop. Portrait crops the
             frame elsewhere, so they'd label open water — hidden below sm. */}
-        <div aria-hidden className="pointer-events-none absolute inset-0 hidden sm:block">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 hidden sm:block"
+          style={{ opacity: hold }}
+        >
           {CALLOUTS.map((c) => (
             <WireCallout
               key={c.label}

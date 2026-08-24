@@ -92,12 +92,11 @@ function DealtDeck() {
   return (
     <div ref={ref} className="mt-16 grid gap-6 md:grid-cols-3">
       {audiences.map((a, i) => {
+        // Straight-line travel in from the left, no easing curve or rotation.
         const style: CSSProperties = {
           opacity: inView ? 1 : 0,
-          transform: inView
-            ? "none"
-            : `translate3d(${-70 - i * 26}px, 26px, 0) rotate(${-7 + i}deg) scale(0.9)`,
-          transition: `opacity 900ms cubic-bezier(0.16,1,0.3,1) ${i * 260}ms, transform 900ms cubic-bezier(0.16,1,0.3,1) ${i * 260}ms`,
+          transform: inView ? "none" : `translate3d(${-64 - i * 20}px, 0, 0)`,
+          transition: `opacity 620ms linear ${i * 260}ms, transform 620ms linear ${i * 260}ms`,
           willChange: "transform, opacity",
         };
         return (

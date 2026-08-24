@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState, type CSSProperties } from "react";
-import { Eyebrow, ParallaxGlow, Reveal, useInView, useStickyProgress } from "./primitives";
+import { LITE_MOTION_MQ, Eyebrow, ParallaxGlow, Reveal, useInView, useStickyProgress } from "./primitives";
 import {
   UnverifiedIdentityDiagram,
   NoRecourseDiagram,
@@ -23,11 +23,16 @@ const cards = [
 const clamp = (v: number) => Math.min(Math.max(v, 0), 1);
 
 // Scroll bands inside the pinned span.
-const BODY_AT = 0.12;
+const BODY_AT = 0.06;
 const BODY_LEN = 0.1;
-const CARD_AT = 0.3;
-const CARD_STEP = 0.2;
-const CARD_LEN = 0.15;
+/*
+ * Cards advance in whole steps rather than tracking scroll continuously: the
+ * live index is quantised, and CSS transitions play the move. However fast the
+ * wheel spins you always come to rest on a card, never mid-dissolve, and each
+ * one holds for a full step of scroll before the next takes over.
+ */
+const CARD_AT = 0.22;
+const CARD_STEP = 0.26;
 
 const headlineClass =
   "font-display text-[1.75rem] leading-[1.15] font-medium tracking-[-0.03em] text-foreground sm:text-4xl md:text-5xl lg:text-[3.1rem]";
@@ -121,24 +126,29 @@ function CardFace({ index, text, Diagram }: { index: number; text: string; Diagr
  * stays visible as a slightly smaller, dimmer slab behind it.
  */
 function CardStack({ progress }: { progress: number }) {
-  const enters = cards.map((_, i) => clamp((progress - (CARD_AT + i * CARD_STEP)) / CARD_LEN));
+  // -1 before the first card, then 0, 1, 2 — one whole step at a time.
+  const active = Math.min(
+    Math.max(Math.floor((progress - CARD_AT) / CARD_STEP), -1),
+    cards.length - 1,
+  );
 
   return (
-    <div className="relative h-[320px] w-full" aria-hidden={enters[0] === 0}>
+    <div className="relative h-[320px] w-full" aria-hidden={active < 0}>
       {cards.map((c, i) => {
-        const enter = enters[i] ?? 0;
-        // How many later cards have started covering this one.
-        const covered = enters.slice(i + 1).reduce((sum, e) => sum + e, 0);
+        const shown = i <= active;
+        const depth = Math.max(active - i, 0); // how many cards now sit on top
         const style: CSSProperties = {
           zIndex: i + 1,
-          opacity: enter * Math.max(1 - covered * 0.45, 0),
-          filter: `blur(${(1 - enter) * 10 + covered * 1.5}px)`,
-          transform: `translateY(${(1 - enter) * 56 - covered * 16}px) scale(${1 - covered * 0.05})`,
+          opacity: shown ? Math.max(1 - depth * 0.45, 0) : 0,
+          filter: `blur(${shown ? depth * 1.5 : 10}px)`,
+          transform: shown
+            ? `translateY(${-depth * 16}px) scale(${1 - depth * 0.05})`
+            : "translateY(56px) scale(1)",
         };
         return (
           <div
             key={c.text}
-            className="absolute inset-0 transition-[opacity,filter,transform] duration-500 ease-out"
+            className="absolute inset-0 transition-[opacity,filter,transform] duration-[650ms] ease-out"
             style={style}
           >
             <CardFace index={i} text={c.text} Diagram={c.diagram} />
@@ -152,7 +162,7 @@ function CardStack({ progress }: { progress: number }) {
           <span
             key={c.text}
             className="h-[3px] w-7 rounded-full transition-colors duration-500"
-            style={{ background: (enters[i] ?? 0) > 0.5 ? "var(--accent)" : "var(--border)" }}
+            style={{ background: i === active ? "var(--accent)" : "var(--border)" }}
           />
         ))}
       </div>
@@ -178,7 +188,7 @@ export function Problem() {
   const { ref: pinRef, progress } = useStickyProgress<HTMLDivElement>(ready && !compact);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px), (prefers-reduced-motion: reduce)");
+    const mq = window.matchMedia(LITE_MOTION_MQ);
     const sync = () => setCompact(mq.matches);
     sync();
     setReady(true);
@@ -234,7 +244,7 @@ export function Problem() {
   return (
     <section id="problem" className="relative">
       {glow}
-      <div ref={pinRef} className="relative h-[300vh]">
+      <div ref={pinRef} className="relative h-[440vh]">
         <div className="sticky top-0 flex h-screen items-center px-5 sm:px-6">
           <div className="mx-auto w-full max-w-6xl">
             {heading}

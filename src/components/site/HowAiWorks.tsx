@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { Search, Gauge, Repeat, ShieldAlert, Radar, Fingerprint, LineChart } from "lucide-react";
-import { Eyebrow, Reveal, Section, useStickyProgress } from "./primitives";
+import { LITE_MOTION_MQ, Eyebrow, Reveal, Section, useStickyProgress } from "./primitives";
 import { XMark } from "./XMark";
 import RadialOrbitalTimeline, { type TimelineItem } from "@/components/ui/radial-orbital-timeline";
 
@@ -95,11 +95,12 @@ const clamp = (v: number) => Math.min(Math.max(v, 0), 1);
 
 /* Scroll bands inside the pinned stage. */
 const X_IN = 0.06;      // the mark fades up out of the dark
-const X_LAND = 0.52;    // …and finishes shrinking onto the orbit centre
-const HANDOFF = 0.58;   // background mark gives way to the real centre node
-const NODES_AT = 0.6;
-const NODES_LEN = 0.18;
-const COPY_AT = 0.8;
+const X_LAND = 0.46;    // …and finishes shrinking onto the orbit centre
+const HANDOFF = 0.5;    // background mark gives way to the real centre node
+/* The ring opens out while the mark is still coming down, not after it lands. */
+const NODES_AT = 0.24;
+const NODES_LEN = 0.26;
+const COPY_AT = 0.6;
 const COPY_LEN = 0.14;
 
 /** The centre mark is 28px (h-7); this is how many times larger it starts. */
@@ -108,19 +109,23 @@ const X_START_SCALE = 46;
 const heading = (
   <>
     <Eyebrow>The Intelligence Layer</Eyebrow>
-    <h2 className="mt-5 font-display text-3xl leading-[1.1] tracking-[-0.03em] text-foreground md:text-4xl lg:text-[2.75rem]">
+    <h2 className="mt-4 font-display text-3xl leading-[1.1] tracking-[-0.03em] text-foreground md:text-4xl lg:text-[2.6rem]">
       The AI behind every match.
     </h2>
-    <p className="mt-5 font-sans text-sm leading-relaxed text-secondary-foreground md:text-base">
-      Corridor One X doesn't wait for you to find the right counterparty. Its AI reads every verified listing,
-      requirement, and Trust Score across the network, and surfaces the deals that actually fit, ranked by how likely
-      they are to close.
-    </p>
   </>
 );
 
+/* Sits to the right of the title so the orbit can ride higher up the stage. */
+const intro = (
+  <p className="max-w-md font-sans text-sm leading-relaxed text-secondary-foreground md:text-[0.95rem]">
+    Corridor One X doesn't wait for you to find the right counterparty. Its AI reads every verified listing,
+    requirement, and Trust Score across the network, and surfaces the deals that actually fit, ranked by how likely
+    they are to close.
+  </p>
+);
+
 const pullQuote = (
-  <p className="max-w-3xl border-l-2 border-accent pl-8 font-display text-xl leading-snug font-medium tracking-[-0.03em] text-accent md:text-2xl">
+  <p className="max-w-3xl border-l-2 border-accent pl-6 font-display text-lg leading-snug font-medium tracking-[-0.03em] text-accent md:text-xl">
     You decide the deal. The AI makes sure the right one reaches you.
   </p>
 );
@@ -176,18 +181,25 @@ function PinnedStage() {
           <XMark className="h-7 w-7 text-accent/70" style={markStyle} />
         </div>
 
-        <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-col justify-center px-5 pt-20 sm:px-6 sm:pt-24">
-          <div className="max-w-2xl" style={copyStyle}>
-            {heading}
+        <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-col justify-center px-5 pt-16 sm:px-6 sm:pt-20">
+          <div
+            className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-12"
+            style={copyStyle}
+          >
+            <div className="max-w-xl">{heading}</div>
+            <div className="lg:pb-1 lg:text-right">{intro}</div>
           </div>
-          <div ref={orbitRef} className="mt-2">
+          <div ref={orbitRef} className="-mt-2">
             <RadialOrbitalTimeline
               timelineData={nodes_}
               centerNode={<XMark className="h-7 w-7 text-accent" />}
-              heightClass="h-[430px] lg:h-[500px]"
+              heightClass="h-[400px] lg:h-[440px]"
               nodesReveal={nodes}
               centerReveal={centre}
             />
+          </div>
+          <div className="-mt-4" style={copyStyle}>
+            {pullQuote}
           </div>
         </div>
       </div>
@@ -201,7 +213,10 @@ function FlowStage() {
     <div className="corridor-glow-center glow-animate">
       <Section id="how-the-ai-works" className="hairline-top">
         <div className="max-w-3xl">
-          <Reveal>{heading}</Reveal>
+          <Reveal>
+            {heading}
+            <div className="mt-5">{intro}</div>
+          </Reveal>
         </div>
         <Reveal delay={80}>
           <RadialOrbitalTimeline
@@ -222,7 +237,7 @@ export function HowAiWorks() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia("(max-width: 1023px), (prefers-reduced-motion: reduce)");
+    const mq = window.matchMedia(LITE_MOTION_MQ);
     const sync = () => setCompact(mq.matches);
     sync();
     setReady(true);
@@ -235,9 +250,6 @@ export function HowAiWorks() {
   return (
     <div className="corridor-glow-center glow-animate">
       <PinnedStage />
-      <Section className="pt-0">
-        <Reveal>{pullQuote}</Reveal>
-      </Section>
     </div>
   );
 }
