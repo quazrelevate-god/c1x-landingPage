@@ -61,7 +61,7 @@ function TiltCard({ a }: { a: (typeof audiences)[number] }) {
     >
       <div className="relative h-64 bg-background p-6 md:h-96">
         <a.diagram />
-        <p className="absolute bottom-0 left-0 p-5 font-display text-[0.72rem] tracking-[0.02em] text-accent uppercase">
+        <p className="absolute bottom-0 left-0 p-5 font-display text-xs tracking-[0.02em] text-accent uppercase sm:text-[0.72rem]">
           {a.label}
         </p>
       </div>

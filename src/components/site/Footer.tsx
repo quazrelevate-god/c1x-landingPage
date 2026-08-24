@@ -18,12 +18,12 @@ export function Footer() {
             Corridor One X. Next-generation trade infrastructure for India &amp; the Gulf.
           </p>
         </div>
-        <ul className="flex flex-wrap gap-x-8 gap-y-3">
+        <ul className="flex flex-wrap gap-x-8 gap-y-1">
           {links.map((l) => (
             <li key={l.label}>
               <a
                 href={l.href}
-                className="inline-block py-2.5 font-sans text-sm text-secondary-foreground transition-colors hover:text-accent"
+                className="inline-flex min-h-11 items-center font-sans text-sm text-secondary-foreground transition-colors hover:text-accent"
               >
                 {l.label}
               </a>

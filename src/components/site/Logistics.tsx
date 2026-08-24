@@ -79,7 +79,7 @@ export function Logistics() {
 
             <div className="mt-8 flex flex-col gap-6 sm:flex-row sm:items-start sm:gap-14">
               <div>
-                <p className="font-display text-[0.72rem] uppercase tracking-[0.02em] text-muted-foreground">
+                <p className="font-display text-xs uppercase tracking-[0.02em] text-muted-foreground sm:text-[0.72rem]">
                   Active now
                 </p>
                 <p className="mt-3 flex items-center gap-3 font-display text-base tracking-tight text-foreground">
@@ -88,7 +88,7 @@ export function Logistics() {
                 </p>
               </div>
               <div>
-                <p className="font-display text-[0.72rem] uppercase tracking-[0.02em] text-muted-foreground">
+                <p className="font-display text-xs uppercase tracking-[0.02em] text-muted-foreground sm:text-[0.72rem]">
                   Coming soon
                 </p>
                 <p className="mt-3 flex items-center gap-3 font-display text-base tracking-tight text-secondary-foreground">

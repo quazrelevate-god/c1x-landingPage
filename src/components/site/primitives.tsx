@@ -303,7 +303,7 @@ export function WordRise({
 export function Eyebrow({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" }) {
   return (
     <p
-      className={`font-display text-[0.72rem] uppercase tracking-[0.02em] ${
+      className={`font-display text-xs uppercase tracking-[0.02em] sm:text-[0.72rem] ${
         tone === "dark" ? "text-muted-foreground" : "text-ink/50"
       }`}
     >

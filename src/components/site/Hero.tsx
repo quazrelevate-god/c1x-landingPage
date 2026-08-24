@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import heroVideo from "@/assets/hero-scrub.mp4";
+// Phones get the short loop (2.5 MB) rather than the scrub master (7.3 MB): it is
+// the same footage, and nothing on mobile seeks through the timeline.
+import heroMobileVideo from "@/assets/hero-loop.mp4";
+import heroPoster from "@/assets/hero-port.jpg";
 import heroDesktopVideo from "@/assets/hero-desktop.mp4";
 
 const headline = "Trade direct. Settle certain. No unverified hands in between.";
@@ -205,10 +208,16 @@ export function Hero() {
 
   if (ready && mobile) {
     return (
-      <section id="top" className="relative min-h-[88vh] overflow-hidden">
+      // svh (not vh) so the hero doesn't resize when mobile browser chrome hides;
+      // pt-16 keeps the copy clear of the fixed nav while staying centred.
+      <section
+        id="top"
+        className="relative flex min-h-svh flex-col justify-center overflow-hidden pt-16 pb-10"
+      >
         <video
           className="absolute inset-0 h-full w-full object-cover"
-          src={heroVideo}
+          src={heroMobileVideo}
+          poster={heroPoster}
           autoPlay
           muted
           loop
@@ -216,7 +225,7 @@ export function Hero() {
           preload="metadata"
         />
         <Overlay />
-        <div className="relative py-28 sm:py-32">
+        <div className="relative">
           <HeroCopy headlineReveal={1} subheadReveal={1} ctaReveal={1} />
         </div>
       </section>

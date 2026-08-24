@@ -179,7 +179,7 @@ export default function RadialOrbitalTimeline({
                   <Icon className="h-4 w-4" strokeWidth={1.5} />
                 </div>
                 <div
-                  className={`absolute left-1/2 top-7 w-max -translate-x-1/2 whitespace-nowrap font-display text-[0.72rem] uppercase tracking-[0.02em] transition-colors duration-500 ${
+                  className={`absolute left-1/2 top-7 w-max -translate-x-1/2 whitespace-nowrap font-display text-xs uppercase tracking-[0.02em] transition-colors duration-500 sm:text-[0.72rem] ${
                     isExpanded ? "text-accent" : "text-muted-foreground"
                   }`}
                 >

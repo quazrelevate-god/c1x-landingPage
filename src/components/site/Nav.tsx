@@ -92,7 +92,7 @@ export function Nav() {
         <div className="flex items-center gap-3">
           <a
             href="/#book-a-demo"
-            className="rounded-md bg-accent px-3.5 py-3 font-display text-[0.8rem] font-medium tracking-tight text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-pressed sm:px-4 sm:py-2.5 sm:text-sm"
+            className="inline-flex h-11 items-center rounded-md bg-accent px-3.5 font-display text-[0.8rem] font-medium tracking-tight text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-pressed sm:px-4 sm:text-sm"
           >
             Book a Demo
           </a>
