@@ -16,9 +16,22 @@ function HeroCta() {
   return (
     <a
       href="/book-a-demo"
-      className="inline-block rounded-md bg-accent px-6 py-3.5 text-center font-display text-sm font-medium tracking-tight text-accent-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover active:bg-accent-pressed"
+      // transparent border so this sits at exactly the same height as the ghost
+      // button beside it, which gains 2px from its own border
+      className="inline-block rounded-md border border-transparent bg-accent px-6 py-3.5 text-center font-display text-sm font-medium tracking-tight text-accent-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover active:bg-accent-pressed"
     >
       Book a Demo
+    </a>
+  );
+}
+
+function HeroSecondaryCta() {
+  return (
+    <a
+      href="/#how-it-works"
+      className="inline-block rounded-md border border-border px-6 py-3.5 text-center font-display text-sm font-medium tracking-tight text-foreground transition-colors duration-300 hover:border-accent/50 hover:text-accent"
+    >
+      See How It Works
     </a>
   );
 }
@@ -209,25 +222,44 @@ export function Hero() {
 
   if (ready && mobile) {
     return (
-      // svh (not vh) so the hero doesn't resize when mobile browser chrome hides;
-      // pt-16 keeps the copy clear of the fixed nav while staying centred.
-      <section
-        id="top"
-        className="relative flex min-h-svh flex-col justify-center overflow-hidden pt-16 pb-10"
-      >
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          src={heroMobileVideo}
-          poster={heroPoster}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-        />
-        <Overlay />
-        <div className="relative">
-          <HeroCopy headlineReveal={1} subheadReveal={1} ctaReveal={1} />
+      // Stacked rather than overlaid: the footage owns the top of the screen and
+      // dissolves into the page, then the copy sits on the page itself, left
+      // aligned. Reads far better on a phone than centred text over moving video.
+      // svh (not vh) so nothing resizes when mobile browser chrome hides.
+      <section id="top" className="relative flex min-h-svh flex-col overflow-hidden">
+        <div className="relative h-[52svh] max-h-[520px] min-h-[280px] w-full shrink-0">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src={heroMobileVideo}
+            poster={heroPoster}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+          />
+          {/* Fades the footage out into the page so there is no hard seam. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to top, var(--background) 1%, color-mix(in oklab, var(--background) 62%, transparent) 26%, color-mix(in oklab, var(--background) 18%, transparent) 58%, transparent 82%)",
+            }}
+          />
+        </div>
+
+        <div className="relative flex flex-1 flex-col justify-center px-5 pt-2 pb-14">
+          <h1 className="font-display text-[2rem] leading-[1.08] font-medium tracking-[-0.035em] text-foreground">
+            {headline}
+          </h1>
+          <p className="mt-5 max-w-md font-sans text-[0.95rem] leading-relaxed text-secondary-foreground">
+            {subhead}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <HeroCta />
+            <HeroSecondaryCta />
+          </div>
         </div>
       </section>
     );
