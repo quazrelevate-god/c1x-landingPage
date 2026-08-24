@@ -97,9 +97,9 @@ const clamp = (v: number) => Math.min(Math.max(v, 0), 1);
 const X_IN = 0.06;      // the mark fades up out of the dark
 const X_LAND = 0.46;    // …and finishes shrinking onto the orbit centre
 const HANDOFF = 0.5;    // background mark gives way to the real centre node
-/* The ring opens out while the mark is still coming down, not after it lands. */
-const NODES_AT = 0.24;
-const NODES_LEN = 0.26;
+/* The orbit simply fades up as the mark lands — no staged bloom. */
+const ORBIT_AT = 0.4;
+const ORBIT_LEN = 0.14;
 const COPY_AT = 0.6;
 const COPY_LEN = 0.14;
 
@@ -115,9 +115,8 @@ const heading = (
   </>
 );
 
-/* Sits to the right of the title so the orbit can ride higher up the stage. */
 const intro = (
-  <p className="max-w-md font-sans text-sm leading-relaxed text-secondary-foreground md:text-[0.95rem]">
+  <p className="max-w-2xl font-sans text-sm leading-relaxed text-secondary-foreground md:text-[0.95rem]">
     Corridor One X doesn't wait for you to find the right counterparty. Its AI reads every verified listing,
     requirement, and Trust Score across the network, and surfaces the deals that actually fit, ranked by how likely
     they are to close.
@@ -164,8 +163,7 @@ function PinnedStage() {
     transform: `translate(${target.x * eased}px, ${target.y * eased}px) scale(${scale})`,
   };
 
-  const nodes = clamp((progress - NODES_AT) / NODES_LEN);
-  const centre = clamp((progress - X_LAND) / (HANDOFF - X_LAND));
+  const orbit = clamp((progress - ORBIT_AT) / ORBIT_LEN);
   const copy = clamp((progress - COPY_AT) / COPY_LEN);
   const copyStyle: CSSProperties = {
     opacity: copy,
@@ -182,23 +180,24 @@ function PinnedStage() {
         </div>
 
         <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl flex-col justify-center px-5 pt-16 sm:px-6 sm:pt-20">
-          <div
-            className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-12"
-            style={copyStyle}
-          >
-            <div className="max-w-xl">{heading}</div>
-            <div className="lg:pb-1 lg:text-right">{intro}</div>
+          <div style={copyStyle}>
+            {heading}
+            <div className="mt-5">{intro}</div>
           </div>
-          <div ref={orbitRef} className="-mt-2">
+          {/* Plain fade — the ring's own slow spin carries the motion. */}
+          <div
+            ref={orbitRef}
+            className="mt-4 transition-opacity duration-700 ease-out"
+            style={{ opacity: orbit }}
+          >
             <RadialOrbitalTimeline
               timelineData={nodes_}
               centerNode={<XMark className="h-7 w-7 text-accent" />}
-              heightClass="h-[400px] lg:h-[440px]"
-              nodesReveal={nodes}
-              centerReveal={centre}
+              heightClass="h-[380px] lg:h-[430px]"
+              maxRadius={168}
             />
           </div>
-          <div className="-mt-4" style={copyStyle}>
+          <div className="mt-6" style={copyStyle}>
             {pullQuote}
           </div>
         </div>
