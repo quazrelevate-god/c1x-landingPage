@@ -239,10 +239,14 @@ export function Hero() {
         <video
           ref={videoRef}
           className="absolute inset-0 h-full w-full object-cover"
-          src={heroDesktopVideo}
+          // Withheld until the client confirms this is a pointer device. This
+          // branch is what gets server-rendered for everyone, phones included, so
+          // a src with preload="auto" here means every phone starts pulling the
+          // 7.4 MB master before hydration can swap in the light hero.
+          {...(ready ? { src: heroDesktopVideo } : {})}
           muted
           playsInline
-          preload="auto"
+          preload={ready ? "auto" : "none"}
         />
         <Overlay />
 
