@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import logo from "@/assets/logo.png";
 import logoInk from "@/assets/logo-ink.png";
-import { LITE_MOTION_MQ } from "./primitives";
+import { LITE_MOTION_MQ, REDUCED_MOTION_MQ } from "./primitives";
 
 const links = [
   { label: "How It Works", href: "/#how-it-works" },
@@ -22,21 +22,23 @@ export function Nav() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Must match the hero's own gate: the bar's backdrop timing depends on which
-    // hero is rendered, and they drift apart if the two queries disagree.
-    const mq = window.matchMedia(LITE_MOTION_MQ);
+    // Backdrop timing follows whichever hero is rendered, so this has to match
+    // the hero's own gate or the two drift apart.
+    const mq = window.matchMedia(REDUCED_MOTION_MQ);
+    // Fading the bar in over the scrub is a desktop flourish. On a phone it just
+    // reads as a missing header, so the bar stays put and only the backdrop moves.
+    const touch = window.matchMedia(LITE_MOTION_MQ);
     setReady(true);
 
     const onScroll = () => {
       const hero = document.getElementById("top");
-      // On phones the hero is a single screen and its copy scrolls straight under
-      // the bar, so the backdrop has to come in immediately. On desktop the bar
-      // stays clear until the pinned hero scrub is done.
+      // The static hero is a single screen and its copy scrolls straight under the
+      // bar, so the backdrop has to come in immediately. Over the scrub the bar
+      // stays clear until the pinned section is done.
       const threshold = mq.matches ? 8 : hero ? hero.offsetTop + hero.offsetHeight - 72 : 24;
       setScrolled(window.scrollY > threshold);
 
-      // On desktop the nav fades in quickly as the hero scrub begins.
-      if (mq.matches || !hero) {
+      if (mq.matches || touch.matches || !hero) {
         setReveal(1);
         return;
       }

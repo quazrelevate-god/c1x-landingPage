@@ -11,6 +11,13 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 export const LITE_MOTION_MQ =
   "(max-width: 1023px), (pointer: coarse), (prefers-reduced-motion: reduce)";
 
+/**
+ * The hero and the nav key off this instead: the scroll-scrubbed ship runs on
+ * phones as well as desktop, so only a stated preference for less motion swaps
+ * in the static hero.
+ */
+export const REDUCED_MOTION_MQ = "(prefers-reduced-motion: reduce)";
+
 export function useInView<T extends HTMLElement = HTMLDivElement>(threshold = 0.25) {
   // A callback ref (rather than an object ref) so the observer re-attaches when
   // a component swaps the observed node — e.g. switching to a mobile layout.

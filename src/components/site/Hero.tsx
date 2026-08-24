@@ -3,8 +3,11 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 // the same footage, and nothing on mobile seeks through the timeline.
 import heroMobileVideo from "@/assets/hero-loop.mp4";
 import heroPoster from "@/assets/hero-port.jpg";
+// Frame pulled from hero-desktop.mp4 at the point the container wireframe is
+// lit, so the ship is on screen the moment the page paints.
+import heroShipPoster from "@/assets/hero-ship-poster.jpg";
 import heroDesktopVideo from "@/assets/hero-desktop.mp4";
-import { LITE_MOTION_MQ } from "./primitives";
+import { REDUCED_MOTION_MQ } from "./primitives";
 
 const headline = "Trade direct. Settle certain. No unverified hands in between.";
 const subhead =
@@ -120,7 +123,9 @@ function HeroCopy({
   ctaReveal: number;
 }) {
   return (
-    <div className="relative mx-auto flex h-full w-full max-w-6xl items-center justify-center px-5 text-center sm:px-6">
+    // On phones the copy lives under the video band, left aligned like the rest
+    // of the page. From sm up it returns to centred over the full-bleed clip.
+    <div className="relative mx-auto flex h-full w-full max-w-6xl items-end justify-center px-5 pb-14 text-left sm:items-center sm:px-6 sm:pb-0 sm:text-center">
       <div className="w-full max-w-3xl">
         <h1
           className="font-display text-[2rem] leading-[1.06] font-medium tracking-[-0.035em] text-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:text-5xl lg:text-6xl"
@@ -129,16 +134,17 @@ function HeroCopy({
           {headline}
         </h1>
         <p
-          className="mx-auto mt-6 max-w-lg font-sans text-[0.95rem] leading-relaxed text-secondary-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:mt-8 sm:text-base"
+          className="mt-6 max-w-lg font-sans text-[0.95rem] leading-relaxed text-secondary-foreground transition-[opacity,filter,transform] duration-700 ease-out sm:mx-auto sm:mt-8 sm:text-base"
           style={revealStyle(subheadReveal)}
         >
           {subhead}
         </p>
         <div
-          className="mt-8 transition-[opacity,filter,transform] duration-700 ease-out sm:mt-10"
+          className="mt-8 flex flex-wrap items-center gap-3 transition-[opacity,filter,transform] duration-700 ease-out sm:mt-10 sm:justify-center"
           style={revealStyle(ctaReveal)}
         >
           <HeroCta />
+          <HeroSecondaryCta />
         </div>
       </div>
     </div>
@@ -155,7 +161,10 @@ export function Hero() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia(LITE_MOTION_MQ);
+    // Only reduced-motion users get the static hero now. Phones scrub too — the
+    // ship reveal is the point of this section, and it only exists in the scrub
+    // clip, so a touch device that skipped it saw a different page entirely.
+    const mq = window.matchMedia(REDUCED_MOTION_MQ);
     const sync = () => setMobile(mq.matches);
     sync();
     setReady(true);
@@ -266,23 +275,45 @@ export function Hero() {
   }
 
   return (
-    <section ref={sectionRef} id="top" className="relative h-[260vh]">
-      <div className="sticky top-0 h-screen min-h-[640px] overflow-hidden bg-background">
-        <video
-          ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
-          // Withheld until the client confirms this is a pointer device. This
-          // branch is what gets server-rendered for everyone, phones included, so
-          // a src with preload="auto" here means every phone starts pulling the
-          // 7.4 MB master before hydration can swap in the light hero.
-          {...(ready ? { src: heroDesktopVideo } : {})}
-          muted
-          playsInline
-          preload={ready ? "auto" : "none"}
-        />
+    // svh so the pinned pane doesn't resize when mobile browser chrome hides,
+    // which would otherwise re-run the scroll maths mid-scrub and jump the video.
+    <section ref={sectionRef} id="top" className="relative h-[260svh]">
+      <div className="sticky top-0 h-[100svh] min-h-[560px] overflow-hidden bg-background">
+        {/*
+          The clip is 16:9. Stretched over a full-height portrait viewport,
+          object-cover has to scale it ~4x to cover and you end up inside a
+          couple of containers. Giving it a band roughly the height of the
+          reference layout brings the crop back to about half the frame, which
+          is the whole ship. From sm up it goes full bleed as before.
+        */}
+        <div className="absolute inset-x-0 top-0 h-[56svh] sm:inset-0 sm:h-full">
+          <video
+            ref={videoRef}
+            // Ship sits around 70% across, so a centred crop cuts it out.
+            className="absolute inset-0 h-full w-full object-cover object-[68%_center] sm:object-center"
+            poster={heroShipPoster}
+            // Held back until hydration so the poster paints first and the 7.4 MB
+            // clip downloads behind it rather than blocking the view.
+            {...(ready ? { src: heroDesktopVideo } : {})}
+            muted
+            playsInline
+            preload={ready ? "auto" : "none"}
+          />
+          {/* Dissolves the band into the page on phones; no seam from sm up. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 sm:hidden"
+            style={{
+              background:
+                "linear-gradient(to top, var(--background) 2%, color-mix(in oklab, var(--background) 55%, transparent) 45%, transparent 100%)",
+            }}
+          />
+        </div>
         <Overlay />
 
-        <div aria-hidden className="pointer-events-none absolute inset-0">
+        {/* Anchored to where the deck sits in a landscape crop. Portrait crops the
+            frame elsewhere, so they'd label open water — hidden below sm. */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 hidden sm:block">
           {CALLOUTS.map((c) => (
             <WireCallout
               key={c.label}
