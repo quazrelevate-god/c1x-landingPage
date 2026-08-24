@@ -3,9 +3,10 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 // the same footage, and nothing on mobile seeks through the timeline.
 import heroMobileVideo from "@/assets/hero-loop.mp4";
 import heroPoster from "@/assets/hero-port.jpg";
-// Frame pulled from hero-desktop.mp4 at the point the container wireframe is
-// lit, so the ship is on screen the moment the page paints.
-import heroShipPoster from "@/assets/hero-ship-poster.jpg";
+// hero-desktop.mp4's own opening frame. The scrub sits at t=0 until you move, so
+// the poster has to be that same frame or the hero visibly jumps once the 7.4 MB
+// clip finishes loading.
+import heroOpenPoster from "@/assets/hero-open-poster.jpg";
 import heroDesktopVideo from "@/assets/hero-desktop.mp4";
 import { REDUCED_MOTION_MQ } from "./primitives";
 
@@ -167,6 +168,7 @@ export function Hero() {
   const current = useRef(0);
   const [p, setP] = useState(0);
   const [mobile, setMobile] = useState(false);
+  const [narrow, setNarrow] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -177,6 +179,15 @@ export function Hero() {
     const sync = () => setMobile(mq.matches);
     sync();
     setReady(true);
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  // Portrait needs the crop to travel: see heroObjectPosition below.
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    const sync = () => setNarrow(mq.matches);
+    sync();
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
@@ -303,19 +314,36 @@ export function Hero() {
           is the whole ship. From sm up it goes full bleed as before.
         */}
         <div
-          className="absolute inset-x-0 top-0 h-[56svh] sm:inset-0 sm:h-full"
+          className="absolute inset-x-0 top-0 sm:inset-0 sm:h-full"
           // Once the ship has finished its run the footage sinks to a backdrop
           // for the Problem section rather than sliding away as a sheet.
+          //
+          // The height is portrait-only: at rest the band is the whole screen, so
+          // the logo the clip opens on lands dead centre exactly as it does on
+          // desktop, then it retracts as the scrub starts, which frames the ship
+          // and opens up the space the copy reveals into. From sm up there is no
+          // inline height and sm:h-full drives it instead.
           style={{
             filter: `brightness(${1 - dim * 0.74}) saturate(${1 - dim * 0.5})`,
             opacity: 1 - dim * 0.55,
+            ...(narrow
+              ? { height: `${(100 - 44 * clamp((p - 0.05) / 0.25)).toFixed(1)}svh` }
+              : {}),
           }}
         >
           <video
             ref={videoRef}
-            // Ship sits around 70% across, so a centred crop cuts it out.
-            className="absolute inset-0 h-full w-full object-cover object-[68%_center] sm:object-center"
-            poster={heroShipPoster}
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            // Portrait crops the 16:9 frame hard, so a fixed crop can only suit
+            // one shot. The clip opens on the logo, centred in frame, then moves
+            // to the ship, which sits right of centre — so the crop travels with
+            // the scrub: dead centre while the logo is up, then over to the ship.
+            style={
+              narrow
+                ? { objectPosition: `${(50 + 18 * clamp((p - 0.06) / 0.22)).toFixed(1)}% center` }
+                : {}
+            }
+            poster={heroOpenPoster}
             // Held back until hydration so the poster paints first and the 7.4 MB
             // clip downloads behind it rather than blocking the view.
             {...(ready ? { src: heroDesktopVideo } : {})}

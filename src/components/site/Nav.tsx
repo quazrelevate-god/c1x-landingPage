@@ -66,24 +66,41 @@ export function Nav() {
           ? "border-b border-border bg-background/85 backdrop-blur-xl"
           : "border-b border-transparent"
       }`}
-      style={{ opacity, pointerEvents: opacity < 0.05 ? "none" : undefined }}
+      // Clears the status bar / notch. Without it the bar's contents sit flush
+      // against the very top edge of the screen on a phone.
+      style={{
+        opacity,
+        paddingTop: "env(safe-area-inset-top)",
+        ...(opacity < 0.05 ? { pointerEvents: "none" as const } : {}),
+      }}
     >
-      <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-5 py-3 sm:h-18 sm:gap-6 sm:px-6 sm:py-4">
-        <a href="/" className="relative flex items-center py-3" aria-label="Corridor One X home">
-          {/* Two colourways cross-faded by the global light/dark dial. */}
-          <img
-            src={logo}
-            alt="Corridor One X"
-            className="h-5 w-auto sm:h-6 md:h-7"
-            style={{ opacity: "calc(1 - var(--theme-t))" }}
-          />
-          <img
-            src={logoInk}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-5 w-auto sm:h-6 md:h-7"
-            style={{ opacity: "var(--theme-t)" }}
-          />
+      {/* Fixed row height at every scroll position, so nothing shifts as the
+          backdrop fades in. py-* would let the tallest child drive the height. */}
+      <nav className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-5 sm:h-18 sm:gap-6 sm:px-6">
+        <a href="/" className="flex items-center" aria-label="Corridor One X home">
+          {/*
+            Two colourways cross-faded by the global light/dark dial. Both files
+            are 1998x320, so a box sized by the first keeps them pixel-aligned.
+            The ink copy used to be an absolutely positioned sibling with
+            inset-0, which pinned it to the link's top edge and stretched it
+            across the full link width — left and right both being 0 wins over
+            w-auto — so it drifted out of register as the dial crossed over.
+          */}
+          <span className="relative inline-flex h-5 sm:h-6 md:h-7">
+            <img
+              src={logo}
+              alt="Corridor One X"
+              className="h-full w-auto"
+              style={{ opacity: "calc(1 - var(--theme-t))" }}
+            />
+            <img
+              src={logoInk}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 h-full w-full"
+              style={{ opacity: "var(--theme-t)" }}
+            />
+          </span>
         </a>
 
         <ul className="hidden items-center gap-8 lg:flex">
