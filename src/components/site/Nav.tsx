@@ -26,7 +26,10 @@ export function Nav() {
 
     const onScroll = () => {
       const hero = document.getElementById("top");
-      const threshold = hero ? hero.offsetTop + hero.offsetHeight - 72 : 24;
+      // On phones the hero is a single screen and its copy scrolls straight under
+      // the bar, so the backdrop has to come in immediately. On desktop the bar
+      // stays clear until the pinned hero scrub is done.
+      const threshold = mq.matches ? 8 : hero ? hero.offsetTop + hero.offsetHeight - 72 : 24;
       setScrolled(window.scrollY > threshold);
 
       // On desktop the nav fades in quickly as the hero scrub begins.
@@ -91,7 +94,7 @@ export function Nav() {
 
         <div className="flex items-center gap-3">
           <a
-            href="/#book-a-demo"
+            href="/book-a-demo"
             className="inline-flex h-11 items-center rounded-md bg-accent px-3.5 font-display text-[0.8rem] font-medium tracking-tight text-accent-foreground transition-colors hover:bg-accent-hover active:bg-accent-pressed sm:px-4 sm:text-sm"
           >
             Book a Demo

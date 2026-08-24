@@ -49,7 +49,7 @@ export function FinalCta() {
         <Reveal delay={180}>
           <div className="mt-10">
             <a
-              href="#book-a-demo"
+              href="/book-a-demo"
               className="inline-block rounded-md bg-accent px-7 py-3.5 font-display text-sm font-medium tracking-tight text-accent-foreground shadow-[0_0_60px_-12px_var(--accent)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover active:bg-accent-pressed"
             >
               Book a Demo

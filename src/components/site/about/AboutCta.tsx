@@ -20,7 +20,7 @@ export function AboutCta() {
             </p>
             <div className="mt-9">
               <a
-                href="/#book-a-demo"
+                href="/book-a-demo"
                 className="inline-block rounded-md bg-accent px-6 py-3.5 text-center font-display text-sm font-medium tracking-tight text-accent-foreground transition-all duration-300 hover:-translate-y-0.5 hover:bg-accent-hover active:bg-accent-pressed"
               >
                 Book a Demo

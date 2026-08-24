@@ -3,9 +3,9 @@ import logo from "@/assets/logo.png";
 const links = [
   { label: "About", href: "/about" },
   { label: "How It Works", href: "/#how-it-works" },
-  { label: "Book a Demo", href: "/#book-a-demo" },
+  { label: "Book a Demo", href: "/book-a-demo" },
   { label: "Privacy", href: "/" },
-  { label: "Contact", href: "/#book-a-demo" },
+  { label: "Contact", href: "/book-a-demo" },
 ];
 
 export function Footer() {
