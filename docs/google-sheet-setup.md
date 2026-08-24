@@ -120,8 +120,15 @@ DEMO_WEBHOOK_URL=https://script.google.com/macros/s/AKfycb..../exec
 `.env` is already covered by `.gitignore`; never commit the URL.
 
 **Production** — add the same variable in your host's environment settings
-(Lovable project settings, or Cloudflare → Workers & Pages → your project →
-Settings → Variables and Secrets, added as a **Secret**), then redeploy.
+(Lovable project settings; Cloudflare → Workers & Pages → your project →
+Settings → Variables and Secrets, added as a **Secret**; or Railway → the
+`landing` service → Variables), then redeploy.
+
+> **Railway note.** This app is built by Nitro, which targets Cloudflare Workers
+> by default. The Railway service therefore also sets `NITRO_PRESET=node-server`
+> so the build produces a plain Node server that `npm start` can run. Don't
+> remove that variable — without it the container builds a Cloudflare Worker,
+> nothing listens on `$PORT`, and every request returns 502.
 
 Restart the dev server after adding it, then submit the form once and confirm a
 row lands in the sheet.
